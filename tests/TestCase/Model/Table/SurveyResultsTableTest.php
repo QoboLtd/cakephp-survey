@@ -1,11 +1,10 @@
 <?php
 namespace Qobo\Survey\Test\TestCase\Model\Table;
 
-use Cake\Datasource\EntityInterface;
+use Cake\ORM\Association\BelongsTo;
 use Cake\ORM\TableRegistry;
 use Cake\TestSuite\TestCase;
 use Qobo\Survey\Model\Table\SurveyResultsTable;
-use Qobo\Survey\Model\Table\SurveysTable;
 
 /**
  * Qobo\Survey\Model\Table\SurveyResultsTable Test Case
@@ -19,11 +18,6 @@ class SurveyResultsTableTest extends TestCase
      * @var \Qobo\Survey\Model\Table\SurveyResultsTable
      */
     public $SurveyResults;
-
-    /**
-     * @var \Qobo\Survey\Model\Table\SurveysTable
-     */
-    public $Surveys;
 
     /**
      * Fixtures
@@ -53,12 +47,6 @@ class SurveyResultsTableTest extends TestCase
          */
         $table = TableRegistry::get('SurveyResults', $config);
         $this->SurveyResults = $table;
-
-        /**
-         * @var \Qobo\Survey\Model\Table\SurveysTable $table
-         */
-        $table = TableRegistry::get('Surveys', ['className' => SurveysTable::class]);
-        $this->Surveys = $table;
     }
 
     /**
@@ -74,55 +62,24 @@ class SurveyResultsTableTest extends TestCase
     }
 
     /**
-     * @dataProvider getResultsProvider
-     * @param mixed[] $data Data
-     * @param int $expected Expected result
+     * Test initialize method
+     *
+     * @return void
      */
-    public function testGetResults(array $data, int $expected): void
+    public function testInitialize(): void
     {
-        $this->markTestSkipped((string)__('Skipping this unit test, as method is deprecated'));
+        $this->assertInstanceOf(SurveyResultsTable::class, $this->SurveyResults);
 
-        $user = ['id' => '123'];
-        $survey = (object)[
-            'id' => '111',
-        ];
+        $this->assertEquals('survey_results', $this->SurveyResults->getTable());
+        $this->assertEquals('id', $this->SurveyResults->getPrimaryKey());
+        $this->assertEquals('id', $this->SurveyResults->getDisplayField());
 
-        $result = $this->SurveyResults->getResults($data, [
-            'user' => $user,
-            'survey' => $survey,
-        ]);
+        $this->assertTrue($this->SurveyResults->hasBehavior('Timestamp'));
 
-        $this->assertEquals(count($result), $expected);
-    }
-
-    /**
-     * @return mixed[]
-     */
-    public function getResultsProvider(): array
-    {
-        return [
-            [
-                [],
-                0,
-            ],
-            [
-                [
-                    'user_id' => '123',
-                    'survey_question_id' => '123123',
-                    'survey_answer_id' => '123',
-                    'survey_id' => '321',
-                ],
-                1,
-            ],
-            [
-                 [
-                    'user_id' => '123',
-                    'survey_question_id' => '123123',
-                    'survey_answer_id' => ['123', '456'],
-                    'survey_id' => '321',
-                 ],
-                 2,
-            ],
-        ];
+        $this->assertInstanceOf(BelongsTo::class, $this->SurveyResults->getAssociation('SurveyAnswers'));
+        $this->assertInstanceOf(BelongsTo::class, $this->SurveyResults->getAssociation('SurveyEntries'));
+        $this->assertInstanceOf(BelongsTo::class, $this->SurveyResults->getAssociation('SurveyQuestions'));
+        $this->assertInstanceOf(BelongsTo::class, $this->SurveyResults->getAssociation('Surveys'));
+        $this->assertInstanceOf(BelongsTo::class, $this->SurveyResults->getAssociation('Users'));
     }
 }
